@@ -69,12 +69,21 @@ const PIP = {
 function pipSVG(suit, cls) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true" class="${cls || ''}"><path d="${PIP[SUITS[suit]]}" fill="currentColor"/></svg>`;
 }
+// On a real card the ten is written "10". The single letter T is poker's way of
+// writing a hand as text (AKs, T9s), where every rank has to be one character;
+// on the card itself it reads as an unknown rank.
+function rankLabel(card) {
+  const r = rankOf(card);
+  return r === 8 ? '<span class="ten">10</span>' : RANKS[r];
+}
+function faceHTML(card) {
+  return `<span class="rk">${rankLabel(card)}${pipSVG(suitOf(card))}</span><span class="pip">${pipSVG(suitOf(card))}</span>`;
+}
 function cardEl(card, width) {
   const el = document.createElement('div');
   el.className = 'card';
   if (width) el.style.setProperty('--w', width);
-  const face = card == null ? '' :
-    `<span class="rk">${RANKS[rankOf(card)]}${pipSVG(suitOf(card))}</span><span class="pip">${pipSVG(suitOf(card))}</span>`;
+  const face = card == null ? '' : faceHTML(card);
   el.innerHTML = `<div class="in"><div class="f${card != null && RED[suitOf(card)] ? ' red' : ''}">${face}</div><div class="b"></div></div>`;
   el._in = el.querySelector('.in');
   el._face = el.querySelector('.f');
@@ -86,7 +95,7 @@ function cardEl(card, width) {
 function setCard(el, card) {
   el.card = card;
   el._face.className = 'f' + (RED[suitOf(card)] ? ' red' : '');
-  el._face.innerHTML = `<span class="rk">${RANKS[rankOf(card)]}${pipSVG(suitOf(card))}</span><span class="pip">${pipSVG(suitOf(card))}</span>`;
+  el._face.innerHTML = faceHTML(card);
 }
 function flip(el, up = true, opts = {}) {
   const from = el.faceUp ? 0 : 180;
