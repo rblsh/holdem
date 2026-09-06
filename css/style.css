@@ -23,7 +23,9 @@
   --scrim:20,22,24; --scrim-a:.42;
   --sheet-bg:#FFFFFF;
   /* the table itself */
-  --felt:rgba(var(--ink-rgb),.035);
+  --felt:rgba(var(--ink-rgb),.045);
+  --felt-lit:rgba(var(--ink-rgb),.016);
+  --felt-mark:rgba(var(--ink-rgb),.030);
   --felt-edge:rgba(var(--ink-rgb),.09);
   --plate:#FFFFFF;
   /* playing cards */
@@ -38,9 +40,10 @@
   --z-fly:6; --z-sheet-scrim:40; --z-sheet:41; --z-toast:50;
   --hair:1px; --r-card:14px; --r-sm:9px; --r-xs:6px; --r-pill:99px;
   --k:1;                       /* one scale for the whole table, set from JS */
-  --cw:calc(50px * var(--k));  /* board and hero card width */
-  --cwm:calc(31px * var(--k)); /* an opponent's card */
-  --chs:calc(15px * var(--k)); /* one chip */
+  --cw:calc(58px * var(--k));  /* the hero's own cards */
+  --cwb:var(--cw);             /* the board, narrowed by JS when the table is */
+  --cwm:calc(34px * var(--k)); /* an opponent's card */
+  --chs:calc(19px * var(--k)); /* one chip */
   --ease:cubic-bezier(.22,.8,.24,1);
   --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;
 }
@@ -59,7 +62,9 @@
   --knob-bg:#2C3033;
   --scrim:0,0,0; --scrim-a:.62;
   --sheet-bg:#212426;
-  --felt:rgba(var(--ink-rgb),.04);
+  --felt:rgba(var(--ink-rgb),.05);
+  --felt-lit:rgba(var(--ink-rgb),.085);
+  --felt-mark:rgba(var(--ink-rgb),.045);
   --felt-edge:rgba(var(--ink-rgb),.10);
   --plate:#232628;
   --face:#F2F2F3; --face-ink:#17191B; --face-red:#B8452F;
@@ -130,9 +135,20 @@ h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
   position:absolute; left:4%; right:4%; top:4%; bottom:4%;
   /* a racetrack, not a circle: the round ends of an ellipse waste the space a
      tall phone has least of */
-  border-radius:50% / 26%; background:var(--felt); box-shadow:0 0 0 var(--hair) var(--felt-edge);
+  border-radius:50% / 26%; box-shadow:0 0 0 var(--hair) var(--felt-edge);
+  /* a little light in the middle of the cloth. Two percent of ink is enough to
+     stop the felt reading as a flat rectangle and not enough to become a colour */
+  background:radial-gradient(120% 90% at 50% 42%, var(--felt-lit) 0%, var(--felt) 62%);
 }
 .rail::after{content:''; position:absolute; inset:calc(9px * var(--k)); border-radius:50% / 26%; box-shadow:0 0 0 var(--hair) var(--felt-edge); opacity:.7}
+/* the mark a real table carries in the middle of the felt. It is the reason the
+   centre of the table does not read as a hole before the flop, and the cards
+   land on top of it the way they do on a real one. */
+.rail .mark{
+  position:absolute; left:50%; top:48%; translate:-50% -50%;
+  width:calc(132px * var(--k)); height:calc(132px * var(--k));
+  fill:var(--felt-mark); pointer-events:none;
+}
 .centre{
   position:absolute; left:50%; top:48%; translate:-50% -50%;
   display:flex; flex-direction:column; align-items:center; gap:calc(9px * var(--k)); width:100%;
@@ -143,16 +159,23 @@ h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
   background:var(--card); box-shadow:0 0 0 var(--hair) var(--line); opacity:0;
 }
 .pot.on{opacity:1}
+.pot{padding-left:calc(6px * var(--k))}
+.pot .chips{display:flex; align-items:flex-end}
+.pot .chips .stack.empty{display:none}
 .pot .lbl{font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--sub); font-weight:500}
 .pot .val{font-size:14px; font-weight:600}
 
-.board{display:flex; gap:calc(4px * var(--k)); height:calc(var(--cw) * 1.4); align-items:center}
+.board{position:relative; display:flex; gap:calc(4px * var(--k)); height:calc(var(--cwb) * 1.4); align-items:center; justify-content:center}
 
 .msg{
-  display:inline-flex; align-items:center; gap:9px; min-height:32px; padding:0 15px; border-radius:var(--r-pill);
-  font-weight:600; font-size:14px; opacity:0; transform:scale(.85); max-width:92%; text-align:center;
+  position:absolute; left:50%; top:100%; translate:-50% calc(6px * var(--k)); z-index:2;
+  display:inline-flex; align-items:center; gap:9px; min-height:32px; padding:calc(5px * var(--k)) 15px; border-radius:calc(16px * var(--k));
+  font-weight:600; font-size:14px; opacity:0; scale:.85; text-align:center; line-height:1.3;
+  /* two lines rather than an ellipsis: the hand it names is the whole point of
+     the sentence, and it is the tail that carries it */
+  max-width:min(320px, calc(100vw - 28px)); box-shadow:var(--shadow-float);
 }
-.msg.on{opacity:1; transform:scale(1)}
+.msg.on{opacity:1; scale:1}
 .msg.win{background:var(--v-dev-bg); color:var(--res-win)}
 .msg.lose{background:var(--v-stop-bg); color:var(--res-lose)}
 .msg.push{background:var(--v-low-bg); color:var(--res-push)}
@@ -170,12 +193,27 @@ h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
 .seat.hero .hole{height:calc(var(--cw) * 1.4); width:calc(var(--cw) * 2 + 6px)}
 
 .plate{
-  position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  min-width:calc(80px * var(--k)); max-width:100%; padding:calc(4px * var(--k)) calc(10px * var(--k));
+  position:relative; display:flex; align-items:center; gap:calc(7px * var(--k));
+  min-width:calc(80px * var(--k)); max-width:100%; padding:calc(4px * var(--k)) calc(10px * var(--k)) calc(4px * var(--k)) calc(5px * var(--k));
   border-radius:var(--r-sm); background:var(--plate); box-shadow:0 0 0 var(--hair) var(--line);
   line-height:1.2;
 }
-.plate .nm{font-size:calc(11px * var(--k)); font-weight:500; color:var(--sub); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.plate .txt{display:flex; flex-direction:column; align-items:flex-start; min-width:0}
+/* a monogram, not a picture: it gives every seat a face at the cost of one
+   letter, and it stays legible at any size the table shrinks to */
+.mono{
+  flex:0 0 auto; width:calc(24px * var(--k)); height:calc(24px * var(--k)); border-radius:50%;
+  display:grid; place-items:center; background:var(--v-low-bg); color:var(--sub);
+  font-size:calc(11px * var(--k)); font-weight:600; letter-spacing:0;
+}
+.seat.hero .mono{background:var(--accent-soft); color:var(--ink)}
+/* how long a seat has been thinking, as a line that fills under its plate */
+.think{
+  position:absolute; left:2px; right:2px; bottom:0; height:2px; border-radius:var(--r-pill); background:var(--accent);
+  transform:scaleX(0); transform-origin:left center; opacity:0;
+}
+.seat.turn .think{opacity:.8}
+.plate .nm{font-size:calc(11px * var(--k)); max-width:calc(74px * var(--k)); font-weight:500; color:var(--sub); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .plate .st{font-size:calc(13px * var(--k)); font-weight:600}
 .seat.hero .plate .nm{font-size:calc(11px * var(--k))}
 .seat.hero .plate .st{font-size:calc(15px * var(--k))}
@@ -216,9 +254,9 @@ h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
    smudge next to every seat */
 .pos:empty{display:none}
 .dealer{
-  position:absolute; width:calc(18px * var(--k)); height:calc(18px * var(--k)); border-radius:50%;
-  background:var(--plate); box-shadow:0 0 0 var(--hair) var(--line-strong), var(--shadow-float);
-  display:grid; place-items:center; font-size:calc(10px * var(--k)); font-weight:700; color:var(--sub);
+  position:absolute; width:calc(19px * var(--k)); height:calc(19px * var(--k)); border-radius:50%;
+  background:var(--plate); box-shadow:0 0 0 1.5px var(--accent-soft), var(--shadow-float);
+  display:grid; place-items:center; font-size:calc(10px * var(--k)); font-weight:700; color:var(--accent);
   left:var(--dx); top:var(--dy); translate:-50% -50%; z-index:2; opacity:0;
 }
 .dealer.on{opacity:1}
@@ -247,9 +285,9 @@ h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
 .c3{--cb:var(--ch3-b); --cn:var(--ch3-n); --ct:var(--ch3-t)}
 .c4{--cb:var(--ch4-b); --cn:var(--ch4-n); --ct:var(--ch4-t)}
 /* a stack seen from the side: each disc sits a little above the one below */
-.stack{position:relative; display:block; width:var(--chs); height:calc(var(--chs) + (var(--n,1) - 1) * 2.5px); flex:0 0 auto}
+.stack{position:relative; display:block; width:var(--chs); height:calc(var(--chs) + (var(--n,1) - 1) * 4px); flex:0 0 auto}
 .stack.empty{display:none}
-.stack .ch{position:absolute; left:0; bottom:calc(var(--i) * 2.5px)}
+.stack .ch{position:absolute; left:0; bottom:calc(var(--i) * 4px)}
 
 /* ---------- playing cards ---------- */
 .card{
@@ -270,13 +308,36 @@ h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
   background-size:6px 6px; background-position:center;
 }
 .card .b::after{content:''; position:absolute; inset:4px; border-radius:4px; box-shadow:0 0 0 1.4px var(--back-dot)}
-.card .rk{position:absolute; top:calc(var(--w,var(--cw)) * .07); left:calc(var(--w,var(--cw)) * .1); font-size:calc(var(--w,var(--cw)) * .34); font-weight:600; line-height:1; letter-spacing:-0.03em}
-/* two digits in the width of one glyph: tighter and a shade smaller, the way a
-   printed deck does it, so the corner index stays inside the card */
+/* the corner index, twice: upright top-left and upside down bottom-right, the
+   way a printed deck lets you read a fanned hand from either end */
+.card .rk{
+  position:absolute; top:calc(var(--w,var(--cw)) * .055); left:calc(var(--w,var(--cw)) * .085);
+  font-size:calc(var(--w,var(--cw)) * .27); font-weight:600; line-height:1; letter-spacing:-0.03em;
+}
+.card .rk.rot{top:auto; left:auto; bottom:calc(var(--w,var(--cw)) * .055); right:calc(var(--w,var(--cw)) * .085); transform:rotate(180deg)}
 .card .rk .ten{display:inline-block; font-size:.78em; letter-spacing:-0.07em; transform:translateY(-0.06em)}
-.card .rk svg{display:block; width:calc(var(--w,var(--cw)) * .22); height:calc(var(--w,var(--cw)) * .22); margin-top:1px}
-.card .pip{position:absolute; right:calc(var(--w,var(--cw)) * .08); bottom:calc(var(--w,var(--cw)) * .06)}
-.card .pip svg{display:block; width:calc(var(--w,var(--cw)) * .42); height:calc(var(--w,var(--cw)) * .42); opacity:.9}
+.card .rk svg{display:block; width:calc(var(--w,var(--cw)) * .19); height:calc(var(--w,var(--cw)) * .19); margin-top:1px}
+/* the middle of a number card: one pip, and the ace gets a ring, because it is
+   the one rank with no number to read */
+.card .pip{position:absolute; inset:0; display:grid; place-items:center}
+.card .pip svg{display:block; width:calc(var(--w,var(--cw)) * .36); height:calc(var(--w,var(--cw)) * .36); opacity:.92}
+.card .pip.ace svg{width:calc(var(--w,var(--cw)) * .27); height:calc(var(--w,var(--cw)) * .27)}
+.card .pip.ace::before{
+  content:''; position:absolute; left:50%; top:50%; width:calc(var(--w,var(--cw)) * .46); height:calc(var(--w,var(--cw)) * .46);
+  transform:translate(-50%,-50%); border-radius:50%; box-shadow:0 0 0 1px currentColor; opacity:.28;
+}
+/* the courts. No frame around the figure: the corner indices would collide */
+.card .court{position:absolute; inset:calc(var(--w,var(--cw)) * .17) calc(var(--w,var(--cw)) * .07); pointer-events:none}
+.card .court svg{width:100%; height:100%; display:block; overflow:visible}
+.card .court .fill{fill:currentColor; fill-opacity:.9}
+.card .court .feather{fill:currentColor; fill-opacity:.42}
+.card .court .beard{fill:currentColor; fill-opacity:.78}
+.card .court .soft{fill:currentColor; fill-opacity:.2}
+.card .court .hair{fill:currentColor; fill-opacity:.3}
+.card .court .emblem path{fill:currentColor; fill-opacity:.92}
+.card .court .gem{fill:var(--face)}
+.card .court .head{fill:var(--face); stroke:currentColor; stroke-opacity:.62; stroke-width:2}
+.card .court .stroke{fill:none; stroke:currentColor; stroke-opacity:.5; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round}
 /* a hand that lost at showdown is dimmed by colour, never by opacity on the
    container: opacity would take the rank down with it */
 .card.dim .f{background:color-mix(in srgb, var(--face) 88%, var(--bg)); color:var(--sub)}
@@ -311,11 +372,12 @@ h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
 .btn.primary.pressed{filter:brightness(.94)}
 
 .sizer{display:flex; flex-direction:column; gap:8px; width:100%; max-width:520px}
-.presets{display:flex; gap:6px; justify-content:center; flex-wrap:wrap}
+.presets{display:flex; gap:6px; justify-content:center; flex-wrap:nowrap; width:100%}
 .pill{
   height:32px; padding:0 12px; border-radius:var(--r-pill); font-size:13px; font-weight:500; color:var(--sub);
-  background:var(--card); box-shadow:0 0 0 var(--hair) var(--line);
+  background:var(--card); box-shadow:0 0 0 var(--hair) var(--line); white-space:nowrap;
 }
+.presets .pill{flex:1 1 0; min-width:0; padding:0 4px; text-align:center}
 .pill.pressed,.pill:hover{color:var(--ink)}
 .pill[aria-pressed="true"]{color:var(--ink); box-shadow:0 0 0 var(--hair) var(--line-strong); background:var(--v-low-bg)}
 .pill:disabled{opacity:.35; pointer-events:none}
@@ -370,6 +432,14 @@ input[type=range]::-moz-range-thumb{
 .sheet-body p{margin:0 0 9px; font-size:14px; line-height:1.55}
 .sheet-body ul{margin:0 0 9px; padding-left:18px; font-size:14px; line-height:1.55}
 .sheet-body li{margin-bottom:4px}
+.sheet-body dl.keys{display:grid; grid-template-columns:auto 1fr; gap:8px 14px; margin:0 0 10px; align-items:baseline}
+.sheet-body dl.keys dt{display:flex; gap:4px; flex-wrap:wrap}
+.sheet-body dl.keys dd{margin:0; font-size:14px; line-height:1.5}
+.sheet-body kbd{
+  font:inherit; font-size:12px; font-weight:600; min-width:20px; padding:2px 6px; border-radius:var(--r-xs);
+  display:inline-flex; align-items:center; justify-content:center; color:var(--sub);
+  background:var(--v-low-bg); box-shadow:0 0 0 var(--hair) var(--line);
+}
 .sheet-body .kv{
   display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0;
   background:var(--card); border-radius:var(--r-card); box-shadow:0 0 0 var(--hair) var(--line); overflow:hidden;
@@ -389,6 +459,11 @@ input[type=range]::-moz-range-thumb{
 .who-list .ds{color:var(--sub); font-size:13px}
 
 /* ---------- phone ---------- */
+@media (max-width:400px){
+  /* the plate must stay inside the rail at the sides of the table */
+  .plate{min-width:calc(64px * var(--k)); padding-right:calc(7px * var(--k))}
+  .mono{width:calc(21px * var(--k)); height:calc(21px * var(--k))}
+}
 @media (max-width:620px){
   .top{padding-left:12px; padding-right:12px; gap:8px}
   .felt{width:calc(100% - 12px)}
