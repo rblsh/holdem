@@ -271,6 +271,9 @@ h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
 }
 .card .b::after{content:''; position:absolute; inset:4px; border-radius:4px; box-shadow:0 0 0 1.4px var(--back-dot)}
 .card .rk{position:absolute; top:calc(var(--w,var(--cw)) * .07); left:calc(var(--w,var(--cw)) * .1); font-size:calc(var(--w,var(--cw)) * .34); font-weight:600; line-height:1; letter-spacing:-0.03em}
+/* two digits in the width of one glyph: tighter and a shade smaller, the way a
+   printed deck does it, so the corner index stays inside the card */
+.card .rk .ten{display:inline-block; font-size:.78em; letter-spacing:-0.07em; transform:translateY(-0.06em)}
 .card .rk svg{display:block; width:calc(var(--w,var(--cw)) * .22); height:calc(var(--w,var(--cw)) * .22); margin-top:1px}
 .card .pip{position:absolute; right:calc(var(--w,var(--cw)) * .08); bottom:calc(var(--w,var(--cw)) * .06)}
 .card .pip svg{display:block; width:calc(var(--w,var(--cw)) * .42); height:calc(var(--w,var(--cw)) * .42); opacity:.9}
