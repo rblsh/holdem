@@ -175,6 +175,7 @@ function buildSeats() {
     };
     o.nm.textContent = s.hero ? 'You' : s.name;
     o.stackSpring = new Spring(s.chips, v => { o.st.textContent = money(v); }, { response: 0.5, eps: 0.6 });
+    o.st.textContent = money(s.chips);   // a spring only paints when it moves, and before the first hand it has not
     // the position of these two lives in CSS `translate`; the spring drives
     // `scale`, a separate property, so the two never overwrite each other
     o.tagSpring = new Spring(0, v => { o.tag.style.scale = String(0.7 + 0.3 * v); o.tag.style.opacity = v; }, { response: 0.3, eps: 0.01 });
