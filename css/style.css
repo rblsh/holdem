@@ -1,0 +1,452 @@
+/* Texas hold'em - house-ui graphite palette, light and dark.
+   The chrome stays neutral; colour lives in the cards, the chips and the
+   outcome of a hand. Every value that changes with the theme is a token, so
+   switching themes is a change of ten lines and not of forty. */
+:root{
+  color-scheme:light;
+  --bg:#F5F5F6; --card:#FFFFFF; --ink:#17191B; --ink-rgb:23,25,27;
+  --accent:#3B565B; --accent-soft:#C2CDCE; --on-accent:#FFFFFF;
+  --v-dev-bg:rgba(28,106,85,.12);  --v-dev:#1E7A5E;
+  --v-fix-bg:rgba(200,154,60,.20); --v-fix:#7A5810;   /* darker than the house token: on its own tint over the felt, #936D25 gives 3.47 */
+  --v-stop-bg:rgba(196,99,74,.16); --v-stop:#A54B33;
+  --v-low-bg:rgba(var(--ink-rgb),.07); --v-low:rgba(var(--ink-rgb),.68);  /* .62 gives 4.41 against its own tint */
+  /* text on the tinted pills, measured against the tint and not against the page */
+  --res-win:#15604A; --res-lose:#8C3B26; --res-push:rgba(var(--ink-rgb),.74);
+  --tip-bg:rgba(23,25,27,.92); --tip-ink:#F3F4F4;
+  --shadow-float:0 6px 20px rgba(20,22,24,.12);
+  --shadow-card:0 6px 18px rgba(20,22,24,.16);
+  --shadow-sheet:0 -20px 60px rgba(20,22,24,.22);
+  --sub:rgba(var(--ink-rgb),.62); --sub2:rgba(var(--ink-rgb),.46);
+  --line:rgba(var(--ink-rgb),.11); --line-strong:rgba(var(--ink-rgb),.17);
+  --track:rgba(var(--ink-rgb),.08); --hover:rgba(var(--ink-rgb),.04);
+  --knob-bg:#FFFFFF;
+  --scrim:20,22,24; --scrim-a:.42;
+  --sheet-bg:#FFFFFF;
+  /* the table itself */
+  --felt:rgba(var(--ink-rgb),.035);
+  --felt-edge:rgba(var(--ink-rgb),.09);
+  --plate:#FFFFFF;
+  /* playing cards */
+  --face:#FFFFFF; --face-ink:#17191B; --face-red:#B8452F;
+  --back:#3B565B; --back-dot:rgba(255,255,255,.22);
+  /* chips: one ordinal ramp, light to dark as the denomination grows */
+  --ch1-b:#C3C9C8;  --ch1-n:#FBFBFB;  --ch1-t:#17191B;
+  --ch2-b:#1C6A55;  --ch2-n:#8FCBB9;  --ch2-t:#FFFFFF;
+  --ch3-b:#2A3033;  --ch3-n:#9FAEB1;  --ch3-t:#FFFFFF;
+  --ch4-b:#8A3A28;  --ch4-n:#E2A292;  --ch4-t:#FFFFFF;
+  /* scales: layers and radii are ordered like colour, so they get names too */
+  --z-fly:6; --z-sheet-scrim:40; --z-sheet:41; --z-toast:50;
+  --hair:1px; --r-card:14px; --r-sm:9px; --r-xs:6px; --r-pill:99px;
+  --k:1;                       /* one scale for the whole table, set from JS */
+  --cw:calc(50px * var(--k));  /* board and hero card width */
+  --cwm:calc(31px * var(--k)); /* an opponent's card */
+  --chs:calc(15px * var(--k)); /* one chip */
+  --ease:cubic-bezier(.22,.8,.24,1);
+  --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1011; --card:#191B1D; --ink:#E9EAEB; --ink-rgb:233,234,235;
+  --accent:#9FBDC0; --accent-soft:#38494C; --on-accent:#0F1011;
+  --v-dev-bg:rgba(79,188,156,.16);  --v-dev:#5CC6A2;
+  --v-fix-bg:rgba(217,174,95,.16);  --v-fix:#E2B76F;
+  --v-stop-bg:rgba(222,124,95,.16); --v-stop:#EC9077;
+  --res-win:#5CC6A2; --res-lose:#EC9077; --res-push:rgba(var(--ink-rgb),.74);
+  --tip-bg:rgba(56,59,62,.94); --tip-ink:#F0F1F1;
+  --shadow-float:0 8px 24px rgba(0,0,0,.45);
+  --shadow-card:0 8px 22px rgba(0,0,0,.5);
+  --shadow-sheet:0 -24px 70px rgba(0,0,0,.6);
+  --knob-bg:#2C3033;
+  --scrim:0,0,0; --scrim-a:.62;
+  --sheet-bg:#212426;
+  --felt:rgba(var(--ink-rgb),.04);
+  --felt-edge:rgba(var(--ink-rgb),.10);
+  --plate:#232628;
+  --face:#F2F2F3; --face-ink:#17191B; --face-red:#B8452F;
+  --back:#2A3B3E; --back-dot:rgba(233,234,235,.16);
+  --ch1-b:#8E9694;  --ch1-n:#E6E9E8;  --ch1-t:#17191B;
+  --ch2-b:#28806A;  --ch2-n:#9BD6C4;  --ch2-t:#FFFFFF;
+  --ch3-b:#3A4245;  --ch3-n:#AFBCBF;  --ch3-t:#FFFFFF;
+  --ch4-b:#A2452F;  --ch4-n:#EDB3A3;  --ch4-t:#FFFFFF;
+}
+@media(min-resolution:1.5dppx){ :root{--hair:0.5px} }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+html{touch-action:manipulation}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--font); font-size:15px; line-height:1.5; letter-spacing:-0.005em;
+  font-variant-numeric:tabular-nums lining-nums;
+  -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;
+  display:flex; flex-direction:column; height:100dvh;
+  overflow:hidden; user-select:none; -webkit-user-select:none;
+  /* touch-action does not inherit, so it is set on both roots: this kills the
+     double-tap zoom and keeps pinch zoom, which is an accessibility feature */
+  touch-action:manipulation; overscroll-behavior:none; -webkit-text-size-adjust:100%;
+  padding-left:env(safe-area-inset-left); padding-right:env(safe-area-inset-right);
+}
+button{font:inherit; color:inherit; background:none; border:0; padding:0; margin:0; cursor:pointer; touch-action:manipulation}
+h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.num{font-variant-numeric:tabular-nums lining-nums}
+
+/* ---------- top bar ---------- */
+.top{
+  display:flex; align-items:center; gap:12px; padding:10px 16px 6px;
+  padding-top:max(10px,env(safe-area-inset-top)); flex:0 0 auto;
+}
+.top h1{font-size:17px; line-height:1.2; flex:0 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tools{display:flex; align-items:center; gap:2px; margin-left:4px}
+.bank{margin-left:auto; text-align:right; line-height:1.15; flex:0 0 auto}
+.bank .lbl{display:block; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--sub); font-weight:500}
+.bank .val{font-size:19px; font-weight:600; letter-spacing:-0.016em; display:inline-block; transform-origin:right center; white-space:nowrap}
+
+.icon{position:relative; width:38px; height:38px; border-radius:var(--r-pill); display:grid; place-items:center; color:var(--sub)}
+.icon svg{width:17px; height:17px}
+.icon:hover,.icon.pressed{color:var(--ink)}
+#btnSound .cross{opacity:0}
+#btnSound.off .wave{opacity:0}
+#btnSound.off .cross{opacity:1}
+.menu-only{display:none}
+
+.seg{--segw:32px; position:relative; display:flex; background:var(--track); border-radius:var(--r-pill); padding:2px; height:30px}
+.seg .knob{position:absolute; top:2px; left:2px; height:26px; width:var(--segw); border-radius:var(--r-pill); background:var(--knob-bg); box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.seg button{position:relative; z-index:1; width:var(--segw); height:26px; border-radius:var(--r-pill); display:grid; place-items:center; color:var(--sub)}
+.seg button[aria-checked="true"]{color:var(--ink)}
+.seg svg{width:14px;height:14px}
+
+/* ---------- the table ---------- */
+.felt{
+  position:relative; flex:1 1 auto; min-height:0; margin:2px auto 4px;
+  /* a table wider than this stops reading as a table: the seats drift apart and
+     the middle becomes a field with cards in it */
+  width:calc(100% - 20px); max-width:720px;
+}
+/* The table itself. Without it the seats read as plates floating on the page,
+   and there is nothing to tell you where the middle is. */
+.rail{
+  position:absolute; left:4%; right:4%; top:4%; bottom:4%;
+  /* a racetrack, not a circle: the round ends of an ellipse waste the space a
+     tall phone has least of */
+  border-radius:50% / 26%; background:var(--felt); box-shadow:0 0 0 var(--hair) var(--felt-edge);
+}
+.rail::after{content:''; position:absolute; inset:calc(9px * var(--k)); border-radius:50% / 26%; box-shadow:0 0 0 var(--hair) var(--felt-edge); opacity:.7}
+.centre{
+  position:absolute; left:50%; top:48%; translate:-50% -50%;
+  display:flex; flex-direction:column; align-items:center; gap:calc(9px * var(--k)); width:100%;
+  pointer-events:none;
+}
+.pot{
+  display:inline-flex; align-items:center; gap:8px; height:29px; padding:0 14px; border-radius:var(--r-pill);
+  background:var(--card); box-shadow:0 0 0 var(--hair) var(--line); opacity:0;
+}
+.pot.on{opacity:1}
+.pot .lbl{font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--sub); font-weight:500}
+.pot .val{font-size:14px; font-weight:600}
+
+.board{display:flex; gap:calc(4px * var(--k)); height:calc(var(--cw) * 1.4); align-items:center}
+
+.msg{
+  display:inline-flex; align-items:center; gap:9px; min-height:32px; padding:0 15px; border-radius:var(--r-pill);
+  font-weight:600; font-size:14px; opacity:0; transform:scale(.85); max-width:92%; text-align:center;
+}
+.msg.on{opacity:1; transform:scale(1)}
+.msg.win{background:var(--v-dev-bg); color:var(--res-win)}
+.msg.lose{background:var(--v-stop-bg); color:var(--res-lose)}
+.msg.push{background:var(--v-low-bg); color:var(--res-push)}
+.msg.info{background:var(--v-low-bg); color:var(--res-push)}
+
+/* ---------- seats ---------- */
+.seats{position:absolute; inset:0}
+.seat{
+  position:absolute; left:calc(var(--x) * 1%); top:calc(var(--y) * 1%);
+  translate:-50% -50%; display:flex; flex-direction:column; align-items:center; gap:calc(4px * var(--k));
+  width:calc(96px * var(--k));
+}
+.seat .hole{position:relative; height:calc(var(--cwm) * 1.4); width:calc(var(--cwm) * 2 + 4px)}
+.seat.hero{width:calc(150px * var(--k)); gap:calc(6px * var(--k))}
+.seat.hero .hole{height:calc(var(--cw) * 1.4); width:calc(var(--cw) * 2 + 6px)}
+
+.plate{
+  position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-width:calc(80px * var(--k)); max-width:100%; padding:calc(4px * var(--k)) calc(10px * var(--k));
+  border-radius:var(--r-sm); background:var(--plate); box-shadow:0 0 0 var(--hair) var(--line);
+  line-height:1.2;
+}
+.plate .nm{font-size:calc(11px * var(--k)); font-weight:500; color:var(--sub); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.plate .st{font-size:calc(13px * var(--k)); font-weight:600}
+.seat.hero .plate .nm{font-size:calc(11px * var(--k))}
+.seat.hero .plate .st{font-size:calc(15px * var(--k))}
+.seat.out .plate{opacity:.55}
+.seat.out .plate .st{color:var(--sub)}
+/* the seat to act carries a ring and a countdown arc, not a colour fill:
+   whose turn it is is a state, not a recommendation */
+.plate .ring{position:absolute; inset:-3px; border-radius:calc(var(--r-sm) + 3px); box-shadow:0 0 0 2px var(--accent-soft); opacity:0}
+.seat.turn .plate .ring{opacity:1}
+.seat.folded .plate .st,.seat.folded .plate .nm{color:var(--sub)}
+.seat.hero .tag{top:calc(-22px * var(--k))}
+/* once a hand is folded its cards are gone, and the tag moves into the space
+   they left instead of floating above an empty rectangle */
+.seat.folded .tag{top:calc(12px * var(--k))}
+.seat.hero.folded .tag{top:calc(25px * var(--k))}
+.seat.winner .plate{box-shadow:0 0 0 2px var(--v-dev)}
+
+.tag{
+  position:absolute; top:calc(-17px * var(--k)); left:50%; translate:-50% 0; scale:.7;
+  height:calc(19px * var(--k)); padding:0 calc(8px * var(--k)); border-radius:var(--r-pill);
+  display:inline-flex; align-items:center; gap:4px; white-space:nowrap;
+  font-size:calc(10px * var(--k)); font-weight:600; letter-spacing:.02em;
+  background:var(--v-low-bg); color:var(--v-low); opacity:0; transform-origin:center;
+}
+.tag.on{opacity:1}
+/* folding is not a mistake, so it gets the neutral tint; the amber and the
+   green are kept for putting money in, which is the thing worth noticing */
+.tag.aggro{background:var(--v-fix-bg); color:var(--v-fix)}
+.tag.allin{background:var(--v-dev-bg); color:var(--res-win)}
+
+.pos{
+  position:absolute; right:calc(-6px * var(--k)); top:calc(-7px * var(--k));
+  height:calc(16px * var(--k)); padding:0 calc(5px * var(--k)); border-radius:var(--r-pill);
+  font-size:calc(9px * var(--k)); font-weight:600; letter-spacing:.04em;
+  background:var(--v-low-bg); color:var(--sub); display:inline-flex; align-items:center;
+}
+.dealer{
+  position:absolute; width:calc(18px * var(--k)); height:calc(18px * var(--k)); border-radius:50%;
+  background:var(--plate); box-shadow:0 0 0 var(--hair) var(--line-strong), var(--shadow-float);
+  display:grid; place-items:center; font-size:calc(10px * var(--k)); font-weight:700; color:var(--sub);
+  left:var(--dx); top:var(--dy); translate:-50% -50%; z-index:2; opacity:0;
+}
+.dealer.on{opacity:1}
+
+/* the money a seat has put in front of it this street */
+.wager{
+  position:absolute; translate:-50% -50%; scale:.6;
+  display:flex; align-items:center; gap:calc(5px * var(--k)); opacity:0; transform-origin:center;
+  padding:calc(2px * var(--k)) calc(7px * var(--k)) calc(2px * var(--k)) calc(3px * var(--k));
+  border-radius:var(--r-pill); background:var(--card); box-shadow:0 0 0 var(--hair) var(--line);
+}
+.wager.on{opacity:1}
+.wager .amt{font-size:calc(11px * var(--k)); font-weight:600}
+
+/* ---------- chips ---------- */
+.ch{
+  --cb:var(--ch2-b); --cn:var(--ch2-n); --ct:var(--ch2-t);
+  position:relative; display:inline-grid; place-items:center; flex:0 0 auto;
+  width:var(--chs); height:var(--chs); border-radius:50%; color:var(--ct);
+  background:repeating-conic-gradient(from 9deg, var(--cn) 0 9deg, var(--cb) 9deg 30deg);
+  box-shadow:0 1px 2px rgba(0,0,0,.3), inset 0 0 0 1px rgba(0,0,0,.16);
+}
+.ch::after{content:''; position:absolute; inset:16%; border-radius:50%; background:var(--cb); box-shadow:inset 0 0 0 1.5px var(--cn)}
+.c1{--cb:var(--ch1-b); --cn:var(--ch1-n); --ct:var(--ch1-t)}
+.c2{--cb:var(--ch2-b); --cn:var(--ch2-n); --ct:var(--ch2-t)}
+.c3{--cb:var(--ch3-b); --cn:var(--ch3-n); --ct:var(--ch3-t)}
+.c4{--cb:var(--ch4-b); --cn:var(--ch4-n); --ct:var(--ch4-t)}
+/* a stack seen from the side: each disc sits a little above the one below */
+.stack{position:relative; display:block; width:var(--chs); height:calc(var(--chs) + (var(--n,1) - 1) * 2.5px); flex:0 0 auto}
+.stack.empty{display:none}
+.stack .ch{position:absolute; left:0; bottom:calc(var(--i) * 2.5px)}
+
+/* ---------- playing cards ---------- */
+.card{
+  position:absolute; left:0; top:0; width:var(--w,var(--cw)); height:calc(var(--w,var(--cw)) * 1.4);
+  perspective:900px; will-change:transform; pointer-events:none;
+}
+.board .card,.fly .card{position:relative}
+.card .in{position:relative; width:100%; height:100%; transform-style:preserve-3d; border-radius:var(--r-xs)}
+.card .f,.card .b{
+  position:absolute; inset:0; border-radius:var(--r-xs); backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  box-shadow:0 0 0 var(--hair) rgba(0,0,0,.14), var(--shadow-card);
+}
+.card .f{background:var(--face); color:var(--face-ink); overflow:hidden}
+.card .f.red{color:var(--face-red)}
+.card .b{
+  transform:rotateY(180deg); background:var(--back);
+  background-image:radial-gradient(var(--back-dot) 1px, rgba(255,255,255,0) 1.2px);
+  background-size:6px 6px; background-position:center;
+}
+.card .b::after{content:''; position:absolute; inset:4px; border-radius:4px; box-shadow:0 0 0 1.4px var(--back-dot)}
+.card .rk{position:absolute; top:calc(var(--w,var(--cw)) * .07); left:calc(var(--w,var(--cw)) * .1); font-size:calc(var(--w,var(--cw)) * .34); font-weight:600; line-height:1; letter-spacing:-0.03em}
+.card .rk svg{display:block; width:calc(var(--w,var(--cw)) * .22); height:calc(var(--w,var(--cw)) * .22); margin-top:1px}
+.card .pip{position:absolute; right:calc(var(--w,var(--cw)) * .08); bottom:calc(var(--w,var(--cw)) * .06)}
+.card .pip svg{display:block; width:calc(var(--w,var(--cw)) * .42); height:calc(var(--w,var(--cw)) * .42); opacity:.9}
+/* a hand that lost at showdown is dimmed by colour, never by opacity on the
+   container: opacity would take the rank down with it */
+.card.dim .f{background:color-mix(in srgb, var(--face) 88%, var(--bg)); color:var(--sub)}
+.card.dim .f.red{color:color-mix(in srgb, var(--face-red) 62%, var(--sub))}
+.card.pick .f{box-shadow:0 0 0 2px var(--v-dev), var(--shadow-card)}
+
+/* ---------- the flying layer ---------- */
+.fly{position:absolute; inset:0; z-index:var(--z-fly); pointer-events:none}
+.fly > *{position:absolute; left:0; top:0; will-change:transform}
+
+/* ---------- controls ---------- */
+.controls{
+  flex:0 0 auto; padding:8px 16px; padding-bottom:max(10px,env(safe-area-inset-bottom));
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:9px; min-height:150px;
+}
+.row{display:flex; align-items:center; justify-content:center; gap:9px; flex-wrap:wrap; width:100%; max-width:520px}
+.acts{gap:8px}
+
+.btn{
+  height:48px; flex:1 1 0; min-width:96px; max-width:230px; padding:0 14px; border-radius:var(--r-pill);
+  font-weight:600; font-size:15px; background:var(--card); box-shadow:0 0 0 var(--hair) var(--line-strong); color:var(--ink);
+  display:inline-flex; align-items:center; justify-content:center; gap:7px; position:relative; white-space:nowrap;
+}
+.btn kbd{font:inherit; font-size:11px; font-weight:500; color:var(--sub); padding:1px 5px; border-radius:5px; box-shadow:0 0 0 var(--hair) var(--line)}
+.btn .amt{font-weight:500; color:var(--sub)}
+/* Accent means "this is the one obvious move", so it only ever sits on a lone
+   button. Fold, call and raise are equals and none of them gets it. */
+.btn.primary{background:var(--accent); color:var(--on-accent); box-shadow:none; flex:0 1 auto; min-width:190px}
+.btn.primary kbd{color:var(--on-accent); opacity:.75; box-shadow:0 0 0 var(--hair) currentColor}
+.btn:disabled{opacity:.4; pointer-events:none}
+.btn.pressed{background:var(--hover)}
+.btn.primary.pressed{filter:brightness(.94)}
+
+.sizer{display:flex; flex-direction:column; gap:8px; width:100%; max-width:520px}
+.presets{display:flex; gap:6px; justify-content:center; flex-wrap:wrap}
+.pill{
+  height:32px; padding:0 12px; border-radius:var(--r-pill); font-size:13px; font-weight:500; color:var(--sub);
+  background:var(--card); box-shadow:0 0 0 var(--hair) var(--line);
+}
+.pill.pressed,.pill:hover{color:var(--ink)}
+.pill[aria-pressed="true"]{color:var(--ink); box-shadow:0 0 0 var(--hair) var(--line-strong); background:var(--v-low-bg)}
+.pill:disabled{opacity:.35; pointer-events:none}
+
+.slide{display:flex; align-items:center; gap:12px}
+.slide .amt{font-size:15px; font-weight:600; min-width:74px; text-align:right}
+input[type=range]{
+  -webkit-appearance:none; appearance:none; flex:1; height:32px; background:none; margin:0;
+  /* Safari zooms the page when a field under 16px takes focus and never zooms
+     back out; a range field has no text, but the rule is cheaper to keep than
+     to remember the exception */
+  font-size:16px;
+}
+input[type=range]::-webkit-slider-runnable-track{height:5px; border-radius:var(--r-pill); background:var(--track)}
+input[type=range]::-moz-range-track{height:5px; border-radius:var(--r-pill); background:var(--track)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none; width:26px; height:26px; margin-top:-10.5px; border-radius:50%;
+  background:var(--knob-bg); box-shadow:0 1px 4px rgba(0,0,0,.22), 0 0 0 var(--hair) var(--line-strong);
+}
+input[type=range]::-moz-range-thumb{
+  width:26px; height:26px; border:0; border-radius:50%;
+  background:var(--knob-bg); box-shadow:0 1px 4px rgba(0,0,0,.22), 0 0 0 var(--hair) var(--line-strong);
+}
+
+.hint{margin:0; font-size:12px; color:var(--sub); text-align:center}
+.waiting{font-size:14px; color:var(--sub); height:48px; display:inline-flex; align-items:center}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom)); translate:-50% 0; z-index:var(--z-toast);
+  max-width:calc(100vw - 40px); padding:10px 16px; border-radius:var(--r-pill);
+  background:var(--tip-bg); color:var(--tip-ink); font-size:14px; font-weight:500;
+  opacity:0; pointer-events:none; box-shadow:var(--shadow-float);
+}
+.toast.on{opacity:1}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed; inset:0; z-index:var(--z-sheet-scrim); background:rgba(var(--scrim),var(--scrim-a)); opacity:0}
+.sheet{
+  position:fixed; left:0; right:0; bottom:0; z-index:var(--z-sheet); max-height:86dvh;
+  display:flex; flex-direction:column; background:var(--sheet-bg);
+  /* the spring below drives `translate`; putting the start position in CSS as
+     `translate` and the animation in JS as `transform` leaves the sheet off
+     screen for ever, because the two are separate properties */
+  border-radius:20px 20px 0 0; box-shadow:var(--shadow-sheet); translate:0 100%;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.sheet-head{display:flex; align-items:center; gap:12px; padding:14px 16px 8px; flex:0 0 auto}
+.sheet-head h2{font-size:19px; letter-spacing:-0.02em; flex:1}
+.sheet-body{overflow-y:auto; padding:0 18px 22px; -webkit-overflow-scrolling:touch}
+.sheet-body h3{font-size:13px; letter-spacing:.05em; text-transform:uppercase; color:var(--sub); margin:18px 0 7px; font-weight:600}
+.sheet-body p{margin:0 0 9px; font-size:14px; line-height:1.55}
+.sheet-body ul{margin:0 0 9px; padding-left:18px; font-size:14px; line-height:1.55}
+.sheet-body li{margin-bottom:4px}
+.sheet-body .kv{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:0;
+  background:var(--card); border-radius:var(--r-card); box-shadow:0 0 0 var(--hair) var(--line); overflow:hidden;
+}
+.sheet-body .kv > div{padding:11px 14px; box-shadow:inset 0 0 0 var(--hair) var(--line)}
+.sheet-body .kv .k{display:block; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--sub); font-weight:500}
+.sheet-body .kv .v{display:block; font-size:18px; font-weight:600; letter-spacing:-0.016em; margin-top:2px}
+.sheet-body .kv .v.up{color:var(--res-win)}
+.sheet-body .kv .v.small{font-size:14px; font-weight:500; color:var(--sub)}
+.sheet-body .kv .v.down{color:var(--res-lose)}
+.choice{display:flex; gap:8px; flex-wrap:wrap; margin:2px 0 6px}
+.choice .pill{height:38px; padding:0 16px; font-size:14px}
+.who-list{display:flex; flex-direction:column; background:var(--card); border-radius:var(--r-card); box-shadow:0 0 0 var(--hair) var(--line); overflow:hidden}
+.who-list > div{display:flex; align-items:baseline; gap:10px; padding:10px 14px; box-shadow:inset 0 var(--hair) 0 var(--line); font-size:14px}
+.who-list > div:first-child{box-shadow:none}
+.who-list .nm{font-weight:600; min-width:78px}
+.who-list .ds{color:var(--sub); font-size:13px}
+
+/* ---------- phone ---------- */
+@media (max-width:620px){
+  .top{padding-left:12px; padding-right:12px; gap:8px}
+  .felt{width:calc(100% - 12px)}
+  .controls{padding-left:12px; padding-right:12px; min-height:142px}
+  .btn{height:46px; min-width:0; font-size:14px; padding:0 10px}
+  .btn kbd{display:none}
+  .slide .amt{min-width:66px; font-size:14px}
+  .pill{height:34px}
+  /* the theme switch moves into the menu: five controls plus a stack do not fit
+     across a phone at 44px each. It exists in exactly one place at a time. */
+  .menu-only{display:grid}
+  .tools .seg,.tools #btnStats,.tools #btnSettings,.tools #btnHelp{display:none}
+  .tools.open{
+    position:absolute; top:calc(max(10px,env(safe-area-inset-top)) + 42px); right:12px; z-index:var(--z-toast);
+    flex-direction:column; align-items:stretch; gap:2px; padding:6px;
+    background:var(--card); border-radius:var(--r-card); box-shadow:var(--shadow-float), 0 0 0 var(--hair) var(--line);
+    width:max-content; max-width:calc(100vw - 24px);
+  }
+  .tools.open .seg,.tools.open #btnStats,.tools.open #btnSettings,.tools.open #btnHelp{display:flex}
+  .tools.open .seg{width:100%; justify-content:space-between}
+  .tools.open .seg button{flex:1}
+  .tools.open .icon{width:auto; height:40px; justify-content:flex-start; padding:0 10px; gap:10px; display:flex; align-items:center; color:var(--ink)}
+  .tools.open .icon::after{content:attr(data-label); font-size:14px; font-weight:500}
+  .tools.open #btnMenu{display:none}
+}
+@media (max-width:380px){
+  .top h1{display:none}
+}
+
+/* ---------- touch ---------- */
+/* 44px is the target for a finger, 40 for a mouse, so the size is raised only
+   where the pointer is coarse - and it is raised by a transparent overlay, not
+   by redrawing the control. Neighbouring overlays are narrowed to the distance
+   between centres: two round 44px overlays on buttons 40px apart overlap, and
+   in the overlap the one later in the markup wins. */
+@media (max-width:620px), (pointer:coarse){
+  .icon::after{content:''; position:absolute; left:50%; top:50%; translate:-50% -50%; width:40px; height:44px}
+  .seg button::after{content:''; position:absolute; left:50%; top:50%; translate:-50% -50%; width:32px; height:44px}
+  .pill{min-height:38px}
+  .pill::after{content:''; position:absolute; left:50%; top:50%; translate:-50% -50%; width:100%; height:44px}
+  .pill{position:relative}
+  input[type=range]{height:44px}
+  input[type=range]::-webkit-slider-thumb{margin-top:-14.5px; width:30px; height:30px}
+  input[type=range]::-moz-range-thumb{width:30px; height:30px}
+  .tools.open .icon::after{width:100%; height:44px}
+}
+
+/* ---------- print ---------- */
+/* The game is a full-height shell, so without this a printed page is one
+   screenshot of the table. What is worth printing is the help text. */
+@media print{
+  html,body{height:auto; overflow:visible; display:block}
+  .top .tools,.felt,.controls,.toast,.scrim{display:none!important}
+  .sheet{position:static; max-height:none; translate:none; box-shadow:none; background:none}
+  .sheet-body{overflow:visible; padding:0}
+  .sheet-head .icon{display:none}
+}
+
+/* The focus indicator lives at the tail of the file on purpose: a later
+   `outline:none` on some field would otherwise win on order alone. */
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible,[role="button"]:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{scroll-behavior:auto}
+}
