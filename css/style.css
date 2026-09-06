@@ -212,6 +212,9 @@ h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.016em}
   font-size:calc(9px * var(--k)); font-weight:600; letter-spacing:.04em;
   background:var(--v-low-bg); color:var(--sub); display:inline-flex; align-items:center;
 }
+/* before the first hand there are no positions, and an empty pill reads as a
+   smudge next to every seat */
+.pos:empty{display:none}
 .dealer{
   position:absolute; width:calc(18px * var(--k)); height:calc(18px * var(--k)); border-radius:50%;
   background:var(--plate); box-shadow:0 0 0 var(--hair) var(--line-strong), var(--shadow-float);
