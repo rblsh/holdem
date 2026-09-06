@@ -1,7 +1,7 @@
 // Network first with a three second deadline, falling back to the cached shell.
 // The deadline matters: on a weak connection fetch does not fail, it hangs, and
 // the game would hang with it.
-const CACHE = 'holdem-v3';
+const CACHE = 'holdem-v4';
 const SHELL = [
   './', './index.html', './css/style.css',
   './js/app.js', './js/engine.js', './js/eval.js', './js/cards.js',
